@@ -12,7 +12,7 @@ namespace BulkyWeb.Models
         [MaxLength(30)]
         public string Name { get; set; }
         [DisplayName("Display order")]
-        [Range(1,100)]
+        [Range(1,100,ErrorMessage ="Display order must be btwn 1 and 100")]
         public int DisplayOrder { get; set; }
 
     }
