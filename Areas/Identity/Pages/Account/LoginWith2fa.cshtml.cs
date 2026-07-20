@@ -10,19 +10,21 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using BulkyWeb.Data;
+using Bulky.DataAccess.Data;
+using Bulky.Models;
+
 
 namespace BulkyWeb.Areas.Identity.Pages.Account;
 
 public class LoginWith2faModel : PageModel
 {
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<IdentityUser> _userManager;
     private readonly ILogger<LoginWith2faModel> _logger;
 
     public LoginWith2faModel(
-        SignInManager<ApplicationUser> signInManager,
-        UserManager<ApplicationUser> userManager,
+        SignInManager<IdentityUser> signInManager,
+        UserManager<IdentityUser> userManager,
         ILogger<LoginWith2faModel> logger)
     {
         _signInManager = signInManager;
