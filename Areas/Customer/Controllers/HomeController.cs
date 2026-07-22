@@ -1,8 +1,10 @@
 using Bulky.DataAccess.Repository;
 using Bulky.DataAccess.Repository.IRepository;
 using Bulky.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace BulkyWeb.Areas.Customer.Controllers
 {
@@ -34,14 +36,45 @@ namespace BulkyWeb.Areas.Customer.Controllers
 
         public IActionResult Details(int productId)
         {
-            var product = _unitOfWork.Product.Get(u=>u.Id== productId,includeProperties: "category");
-
-            if (product == null)
+            ShoppingCart cart = new()
             {
-                throw new Exception("Get() returned null");
-            }
+                Count = 1,
+                Product = _unitOfWork.Product.Get(u => u.Id == productId, includeProperties: "category"),
+                ProductId = productId
+            };
 
-            return View(product);
+            return View(cart);
+        }
+        [HttpPost]
+        [Authorize]
+        public IActionResult Details(ShoppingCart shoppingCart)
+        {
+            try
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity!;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+
+                shoppingCart.ApplicationUserId = userId;
+                ShoppingCart cartFromDb = _unitOfWork.ShoppingCart.Get(u => u.ProductId == shoppingCart.ProductId && u.ApplicationUserId==shoppingCart.ApplicationUserId);
+
+                if (cartFromDb != null)
+                {
+                    cartFromDb.Count = shoppingCart.Count;
+                    _unitOfWork.ShoppingCart.Update(cartFromDb);
+                }
+                else
+                {
+                    _unitOfWork.ShoppingCart.Add(shoppingCart);
+                }
+                _unitOfWork.Save();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);   // Logs the full exception
+
+                return BadRequest(ex.Message);
+            }
         }
 
         public IActionResult Privacy()
